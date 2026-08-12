@@ -125,6 +125,21 @@
       <div class="birth-tag" id="birth-info-banner" aria-live="polite">
         🎂 Né·e le <strong id="birth-display">–</strong>
       </div>
+
+      <div class="db-controls-bar">
+        <div class="sort-selector-wrap">
+          <span class="sort-icon">🎯</span>
+          <select id="select-sort" class="sort-select" aria-label="Trier les compteurs">
+            <option value="default">Ordre des unités</option>
+            <option value="closest">Caps les plus proches</option>
+          </select>
+        </div>
+
+        <button id="btn-toggle-expand" class="btn-toggle-expand" aria-label="Déplier / Replier tout">
+          <span class="expand-icon">📂</span>
+          <span class="expand-text">Tout déplier</span>
+        </button>
+      </div>
     </div>
 
     <main id="dashboard-grid" class="db-grid" aria-label="Compteurs de vie en temps réel">

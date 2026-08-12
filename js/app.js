@@ -38,6 +38,10 @@ const upcomingMilestonesCache = {
   months: [], weeks: [], days: [], hours: [], minutes: [], seconds: [],
 };
 
+// Mode de tri ('default' ou 'closest')
+let sortMode = 'default';
+const closestMsRemaining = {};
+
 // ─── Gestion localStorage & Profils ──────────────────────────────────────────
 
 function saveProfiles() {
@@ -271,6 +275,28 @@ function closeProfileModal() {
   editingProfileId = null;
 }
 
+// ─── Tri des cartes ──────────────────────────────────────────────────────────
+
+function applyCardSorting() {
+  if (sortMode === 'closest') {
+    const sortedUnits = [...UNITS].sort((a, b) => {
+      const msA = closestMsRemaining[a.id] ?? Infinity;
+      const msB = closestMsRemaining[b.id] ?? Infinity;
+      return msA - msB;
+    });
+
+    sortedUnits.forEach((unit, rank) => {
+      const card = document.getElementById(`card-${unit.id}`);
+      if (card) card.style.order = rank;
+    });
+  } else {
+    UNITS.forEach((unit, index) => {
+      const card = document.getElementById(`card-${unit.id}`);
+      if (card) card.style.order = index;
+    });
+  }
+}
+
 // ─── Dashboard ────────────────────────────────────────────────────────────────
 
 function startDashboard() {
@@ -278,6 +304,7 @@ function startDashboard() {
   if (!birthDate) return;
   timerInterval = startTimer(birthDate, (elapsed) => {
     UNITS.forEach(unit => updateCard(unit, elapsed[unit.id]));
+    applyCardSorting();
   });
 }
 
@@ -286,12 +313,25 @@ function updateCard(unit, currentValue) {
   if (!card) return;
 
   // ── Compteur actuel
+  const formattedVal = formatNumber(currentValue, unit.decimals);
   const counterEl = card.querySelector('.card-counter');
-  if (counterEl) counterEl.textContent = formatNumber(currentValue, unit.decimals);
+  if (counterEl) counterEl.textContent = formattedVal;
+
+  // ── Résumé compact mobile
+  const mobCounter = card.querySelector('.mobile-counter-val');
+  if (mobCounter) mobCounter.textContent = `${formattedVal} ${unit.labelPlural}`;
 
   // ── Recalcul des 6 prochains caps
   const upcoming = getUpcomingMilestones(birthDate, currentValue, unit.id, 6);
   upcomingMilestonesCache[unit.id] = upcoming;
+
+  if (upcoming.length > 0) {
+    closestMsRemaining[unit.id] = upcoming[0].msRemaining;
+    const mobCap = card.querySelector('.mobile-cap-target');
+    if (mobCap) {
+      mobCap.textContent = `🎯 ${formatMilestoneTarget(upcoming[0].next)} ${unit.labelPlural}`;
+    }
+  }
 
   // S'assurer que l'index ne dépasse pas la liste disponible
   if (milestoneIndexes[unit.id] >= upcoming.length) {
@@ -645,6 +685,18 @@ function bindEvents() {
 
   // Navigation entre les caps
   document.addEventListener('click', (e) => {
+    // Accordéon mobile header toggle
+    const headerToggle = e.target.closest('.card-header-toggle');
+    if (headerToggle) {
+      const card = headerToggle.closest('.card');
+      if (card) {
+        card.classList.toggle('expanded');
+        const isExpanded = card.classList.contains('expanded');
+        headerToggle.setAttribute('aria-expanded', isExpanded);
+      }
+      return;
+    }
+
     const btnPrev = e.target.closest('.btn-cap-prev');
     if (btnPrev) {
       const unitId = btnPrev.dataset.unit;
@@ -687,6 +739,41 @@ function bindEvents() {
       showCalendarModal(eventData);
     }
   });
+
+  // Changement de mode de tri
+  document.getElementById('select-sort')?.addEventListener('change', (e) => {
+    sortMode = e.target.value;
+    localStorage.setItem('multiversaires_sort_mode', sortMode);
+    applyCardSorting();
+    if (sortMode === 'closest') {
+      showToast('🎯 Tri par cap le plus proche activé');
+    } else {
+      showToast('📋 Tri par ordre des unités activé');
+    }
+  });
+
+  // Toggle Déplier / Replier tout (mobile)
+  document.getElementById('btn-toggle-expand')?.addEventListener('click', () => {
+    const cards = document.querySelectorAll('.card');
+    const btnText = document.querySelector('#btn-toggle-expand .expand-text');
+    const btnIcon = document.querySelector('#btn-toggle-expand .expand-icon');
+    const anyCollapsed = Array.from(cards).some(c => !c.classList.contains('expanded'));
+
+    cards.forEach(card => {
+      if (anyCollapsed) card.classList.add('expanded');
+      else card.classList.remove('expanded');
+    });
+
+    if (btnText && btnIcon) {
+      if (anyCollapsed) {
+        btnText.textContent = 'Tout replier';
+        btnIcon.textContent = '📁';
+      } else {
+        btnText.textContent = 'Tout déplier';
+        btnIcon.textContent = '📂';
+      }
+    }
+  });
 }
 
 function openSettings() {
@@ -713,61 +800,79 @@ function buildDashboardCards() {
   grid.innerHTML = UNITS.map(unit => `
     <article class="card card-${unit.id}" id="card-${unit.id}" aria-label="Compteur ${unit.label}">
 
-      <!-- Section haute : compteur actuel -->
-      <div class="card-top">
-        <div class="card-unit-label">
-          <span class="dot"></span>
-          ${unit.label}
+      <!-- En-tête mobile compact / Accordéon toggle -->
+      <div class="card-header-toggle" role="button" aria-expanded="false">
+        <div class="card-mobile-summary">
+          <span class="card-unit-label">
+            <span class="dot"></span>
+            ${unit.label}
+          </span>
+          <span class="mobile-counter-val">0 ${unit.labelPlural}</span>
         </div>
-        <div class="card-counter" aria-live="polite" aria-atomic="true">0</div>
-        <div class="card-counter-sub">${unit.labelPlural} vécus</div>
+        <div class="card-mobile-cap">
+          <span class="mobile-cap-target">🎯 –</span>
+          <span class="accordion-chevron">▾</span>
+        </div>
       </div>
 
-      <!-- Barre de progression séparatrice -->
-      <div class="card-progress">
-        <div class="card-progress-fill"></div>
-      </div>
-
-      <!-- Section basse : prochain cap -->
-      <div class="card-cap">
-
-        <!-- En-tête de la section cap avec navigation -->
-        <div class="cap-nav-bar">
-          <span class="cap-label">Prochain cap</span>
-          <div class="cap-nav-controls">
-            <button
-              class="btn-cap-prev"
-              data-unit="${unit.id}"
-              aria-label="Cap précédent"
-              disabled
-            >←</button>
-            <span class="cap-nav-index">1 / 6</span>
-            <button
-              class="btn-cap-next"
-              data-unit="${unit.id}"
-              aria-label="Cap suivant"
-            >→</button>
+      <!-- Corps de carte -->
+      <div class="card-body">
+        <!-- Section haute : compteur actuel -->
+        <div class="card-top">
+          <div class="card-unit-label">
+            <span class="dot"></span>
+            ${unit.label}
           </div>
+          <div class="card-counter" aria-live="polite" aria-atomic="true">0</div>
+          <div class="card-counter-sub">${unit.labelPlural} vécus</div>
         </div>
 
-        <div class="cap-number">–</div>
-        <div class="cap-date">–</div>
-        <div class="cap-countdown">–</div>
-      </div>
+        <!-- Barre de progression séparatrice -->
+        <div class="card-progress">
+          <div class="card-progress-fill"></div>
+        </div>
 
-      <!-- Pied : % + bouton calendrier -->
-      <div class="card-foot">
-        <span class="progress-pct">0%</span>
-        <button
-          class="btn-cal"
-          aria-label="Ajouter ce cap au calendrier"
-          data-target=""
-          data-unit="${unit.id}"
-          data-unit-label="${unit.labelPlural}"
-          data-target-date=""
-        >
-          📅 Ajouter au calendrier
-        </button>
+        <!-- Section basse : prochain cap -->
+        <div class="card-cap">
+
+          <!-- En-tête de la section cap avec navigation -->
+          <div class="cap-nav-bar">
+            <span class="cap-label">Prochain cap</span>
+            <div class="cap-nav-controls">
+              <button
+                class="btn-cap-prev"
+                data-unit="${unit.id}"
+                aria-label="Cap précédent"
+                disabled
+              >←</button>
+              <span class="cap-nav-index">1 / 6</span>
+              <button
+                class="btn-cap-next"
+                data-unit="${unit.id}"
+                aria-label="Cap suivant"
+              >→</button>
+            </div>
+          </div>
+
+          <div class="cap-number">–</div>
+          <div class="cap-date">–</div>
+          <div class="cap-countdown">–</div>
+        </div>
+
+        <!-- Pied : % + bouton calendrier -->
+        <div class="card-foot">
+          <span class="progress-pct">0%</span>
+          <button
+            class="btn-cal"
+            aria-label="Ajouter ce cap au calendrier"
+            data-target=""
+            data-unit="${unit.id}"
+            data-unit-label="${unit.labelPlural}"
+            data-target-date=""
+          >
+            📅 Ajouter au calendrier
+          </button>
+        </div>
       </div>
 
     </article>
@@ -784,6 +889,10 @@ function init() {
   }
 
   loadProfiles();
+  sortMode = localStorage.getItem('multiversaires_sort_mode') || 'default';
+  const sortSelect = document.getElementById('select-sort');
+  if (sortSelect) sortSelect.value = sortMode;
+
   buildDashboardCards();
   bindEvents();
 
