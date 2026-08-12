@@ -1,0 +1,36 @@
+{
+  "name": "Multiversaires",
+  "short_name": "Multiversaires",
+  "description": "Découvrez exactement combien de temps vous avez vécu et célébrez vos prochains grands caps !",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#f7f5f2",
+  "background_color": "#f7f5f2",
+  "lang": "fr",
+  "categories": ["lifestyle", "utilities"],
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Mon Tableau de Bord",
+      "short_name": "Dashboard",
+      "description": "Voir mes compteurs de vie",
+      "url": "./index.html",
+      "icons": [{ "src": "./icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

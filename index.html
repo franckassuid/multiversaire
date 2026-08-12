@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="Multiversaires – Découvrez exactement combien de mois, semaines, jours, heures, minutes et secondes vous avez vécus, et célébrez vos prochains grands caps !" />
+  <meta name="theme-color" content="#F5F3EF" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Multiversaires" />
+  <meta property="og:title" content="Multiversaires – Célébrez votre temps sur Terre" />
+  <meta property="og:description" content="Découvrez en temps réel combien de temps vous avez vécu et vos prochains caps symboliques." />
+  <meta property="og:type" content="website" />
+
+  <title>Multiversaires – Célébrez votre temps sur Terre</title>
+
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="apple-touch-icon" href="./icons/icon-192.png" />
+  <link rel="icon" type="image/png" href="./icons/icon-192.png" />
+  <link rel="stylesheet" href="./css/style.css" />
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js" defer></script>
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════════
+       VUE ONBOARDING
+       ══════════════════════════════════════════ -->
+  <section id="view-onboarding" class="view" aria-label="Bienvenue sur Multiversaires">
+    <div class="onboarding-card" role="main">
+
+      <div class="ob-logo">
+        <div class="ob-logo-img">
+          <img src="./icons/icon-192.png" alt="Multiversaires" width="44" height="44" />
+        </div>
+        <div class="ob-logo-text">
+          <span class="ob-logo-name">Multiversaires</span>
+          <span class="ob-logo-tagline">Le compteur de vos petits caps</span>
+        </div>
+      </div>
+
+      <h1 class="ob-heading">Quand êtes-vous<br />né·e exactement ?</h1>
+      <p class="ob-sub">
+        Entrez votre date et heure de naissance pour découvrir en temps réel votre âge dans toutes ses unités — et vos prochains grands caps à célébrer.
+      </p>
+
+      <form id="form-onboarding" novalidate>
+
+        <div class="form-group">
+          <label class="form-label" for="input-date">Date de naissance</label>
+          <input
+            type="date"
+            id="input-date"
+            class="form-input"
+            required
+            aria-required="true"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="input-time">
+            Heure de naissance
+            <span style="font-weight:400; text-transform:none; letter-spacing:0; color:var(--ink-3);">— optionnel</span>
+          </label>
+          <input
+            type="time"
+            id="input-time"
+            class="form-input"
+            placeholder="00:00"
+          />
+          <p class="form-note">Si vous ne connaissez pas l'heure exacte, laissez 00:00. Vous pouvez modifier plus tard.</p>
+        </div>
+
+        <button type="submit" id="btn-start" class="btn-primary">
+          Calculer mon âge en détail →
+        </button>
+
+      </form>
+    </div>
+  </section>
+
+
+  <!-- ══════════════════════════════════════════
+       VUE DASHBOARD
+       ══════════════════════════════════════════ -->
+  <div id="view-dashboard" class="view" aria-label="Tableau de bord Multiversaires">
+
+    <header class="dashboard-header" role="banner">
+      <div class="hdr-logo" id="hdr-logo" role="button" tabindex="0" title="Retour au début">
+        <div class="hdr-logo-img">
+          <img src="./icons/icon-192.png" alt="Multiversaires" width="30" height="30" />
+        </div>
+        <span class="hdr-logo-name">Multiversaires</span>
+      </div>
+
+      <div class="hdr-right">
+        <!-- Sélecteur de profil -->
+        <div class="profile-selector-wrap">
+          <button id="btn-profile-selector" class="btn-profile-selector" aria-haspopup="true" aria-expanded="false" title="Changer de profil">
+            <span class="profile-icon">👤</span>
+            <span id="active-profile-name">Moi</span>
+            <span class="chevron">▾</span>
+          </button>
+
+          <div id="profile-dropdown" class="profile-dropdown" role="menu">
+            <div id="profile-dropdown-list" class="profile-dropdown-list">
+              <!-- Dynamique par app.js -->
+            </div>
+            <div class="profile-dropdown-divider"></div>
+            <button id="btn-add-person" class="btn-dropdown-action">
+              <span>➕</span> Ajouter une personne
+            </button>
+          </div>
+        </div>
+
+        <div class="live-badge" aria-label="Mise à jour en direct">
+          <div class="live-dot" aria-hidden="true"></div>
+          <span>Live</span>
+        </div>
+        <button id="btn-settings" class="btn-settings" aria-label="Paramètres" title="Paramètres">⚙️</button>
+      </div>
+    </header>
+
+    <div class="db-intro">
+      <div class="birth-tag" id="birth-info-banner" aria-live="polite">
+        🎂 Né·e le <strong id="birth-display">–</strong>
+      </div>
+    </div>
+
+    <main id="dashboard-grid" class="db-grid" aria-label="Compteurs de vie en temps réel">
+      <!-- Cartes générées par app.js -->
+    </main>
+
+  </div>
+
+
+  <!-- ══════════════════════════════════════════
+       MODAL PARAMÈTRES
+       ══════════════════════════════════════════ -->
+  <div id="modal-settings" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-settings-title">
+    <div class="modal-box">
+
+      <div class="modal-hdr">
+        <h2 id="modal-settings-title">⚙️ Paramètres</h2>
+        <button id="btn-close-settings" class="btn-close" aria-label="Fermer">✕</button>
+      </div>
+
+      <form id="form-settings" novalidate>
+
+        <div class="form-group">
+          <label class="form-label" for="settings-date">Date de naissance</label>
+          <input type="date" id="settings-date" class="form-input" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="settings-time">Heure de naissance</label>
+          <input type="time" id="settings-time" class="form-input" />
+        </div>
+
+        <div class="modal-actions">
+          <button type="submit" id="btn-save-settings" class="btn-save" style="width: 100%;">✓ Enregistrer</button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ══════════════════════════════════════════
+       MODAL PROFIL (AJOUTER / MODIFIER)
+       ══════════════════════════════════════════ -->
+  <div id="modal-profile" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-profile-title">
+    <div class="modal-box">
+
+      <div class="modal-hdr">
+        <h2 id="modal-profile-title">👤 Profil</h2>
+        <button id="btn-close-profile" class="btn-close" aria-label="Fermer">✕</button>
+      </div>
+
+      <form id="form-profile" novalidate>
+
+        <div class="form-group form-group-checkbox">
+          <label class="form-checkbox-label">
+            <input type="checkbox" id="profile-isself" />
+            <span>C'est mon profil ("Moi")</span>
+          </label>
+        </div>
+
+        <div class="form-group" id="group-profile-name">
+          <label class="form-label" for="profile-name">Nom / Prénom</label>
+          <input type="text" id="profile-name" class="form-input" placeholder="ex: Sophie, Julien, Papa..." required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="profile-date">Date de naissance</label>
+          <input type="date" id="profile-date" class="form-input" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="profile-time">
+            Heure de naissance
+            <span style="font-weight:400; text-transform:none; letter-spacing:0; color:var(--ink-3);">— optionnel</span>
+          </label>
+          <input type="time" id="profile-time" class="form-input" placeholder="00:00" />
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" id="btn-delete-profile" class="btn-danger" style="display:none;">🗑 Supprimer la fiche</button>
+          <button type="submit" id="btn-save-profile" class="btn-save">✓ Enregistrer</button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
