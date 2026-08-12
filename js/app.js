@@ -279,8 +279,7 @@ function closeProfileModal() {
 
 function sortAndOrderCards() {
   if (!birthDate) return;
-  const now = new Date();
-  const elapsed = calculateTimeElapsed(birthDate, now);
+  const elapsed = calcElapsed(birthDate);
 
   UNITS.forEach(unit => {
     const val = elapsed[unit.id];
