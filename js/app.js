@@ -188,12 +188,10 @@ function renderProfileDropdown() {
 
   listEl.innerHTML = profiles.map(p => {
     const isActive = p.id === activeProfileId;
-    const badgeText = p.isSelf ? 'Moi' : 'Ami·e';
     return `
       <div class="profile-item-row ${isActive ? 'active' : ''}">
         <button class="profile-item-btn" data-profile-id="${p.id}">
           <span>👤 ${escapeHTML(p.name)}</span>
-          <span class="profile-badge">${badgeText}</span>
         </button>
         <button class="btn-profile-edit" data-edit-profile-id="${p.id}" title="Modifier cette fiche">
           ✏️
@@ -354,6 +352,14 @@ function updateCard(unit, currentValue) {
     const mobDate = card.querySelector('.mobile-cap-date');
     if (mobDate) {
       mobDate.textContent = `le ${upcoming[0].targetDateFormatted}`;
+    }
+
+    const mobCalBtn = card.querySelector('.btn-mob-cal');
+    if (mobCalBtn) {
+      mobCalBtn.dataset.target     = upcoming[0].next;
+      mobCalBtn.dataset.unit       = unit.id;
+      mobCalBtn.dataset.unitLabel  = unit.labelPlural;
+      mobCalBtn.dataset.targetDate = upcoming[0].targetDate.toISOString();
     }
   }
 
@@ -707,8 +713,20 @@ function bindEvents() {
     closeSettings();
   });
 
-  // Navigation entre les caps
+  // Navigation entre les caps & calendrier rapide mobile
   document.addEventListener('click', (e) => {
+    // Bouton calendrier rapide mobile (dans l'en-tête de la tuile)
+    const mobCalBtn = e.target.closest('.btn-mob-cal');
+    if (mobCalBtn) {
+      e.stopPropagation();
+      const { target, unit, unitLabel, targetDate } = mobCalBtn.dataset;
+      if (!target || !unit || !targetDate) return;
+      const activeP = getActiveProfile();
+      const eventData = buildEventData(Number(target), unit, unitLabel, new Date(targetDate), activeP);
+      showCalendarModal(eventData);
+      return;
+    }
+
     // Accordéon mobile header toggle
     const headerToggle = e.target.closest('.card-header-toggle');
     if (headerToggle) {
@@ -838,6 +856,15 @@ function buildDashboardCards() {
             <span class="mobile-cap-target">🎯 –</span>
             <span class="mobile-cap-date">le –</span>
           </div>
+          <button
+            class="btn-mob-cal"
+            aria-label="Ajouter ce cap au calendrier"
+            title="Ajouter au calendrier"
+            data-target=""
+            data-unit="${unit.id}"
+            data-unit-label="${unit.labelPlural}"
+            data-target-date=""
+          >📅</button>
           <span class="accordion-chevron">▾</span>
         </div>
       </div>

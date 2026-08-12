@@ -665,6 +665,27 @@ body::before {
   text-overflow: ellipsis;
 }
 
+.btn-mob-cal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  border: 1.5px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: .3rem .45rem;
+  font-size: .85rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background .15s, border-color .15s, transform .15s;
+  flex-shrink: 0;
+}
+
+.btn-mob-cal:hover {
+  background: var(--white);
+  border-color: var(--ink);
+  transform: scale(1.08);
+}
+
 .accordion-chevron {
   font-size: .85rem;
   color: var(--ink-3);
