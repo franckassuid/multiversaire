@@ -596,32 +596,34 @@ body::before {
 /* En-tête mobile compact / Accordéon toggle */
 .card-header-toggle {
   display: none;
-  padding: .85rem 1rem;
+  padding: .9rem 1.1rem;
   background: var(--white);
   align-items: center;
   justify-content: space-between;
-  gap: .5rem;
+  gap: .75rem;
   cursor: pointer;
   user-select: none;
   border-bottom: 1px solid transparent;
   transition: background .15s;
+  width: 100%;
 }
 
 .card-header-toggle:hover {
   background: var(--bg);
 }
 
-.card-mobile-summary {
+.mob-header-left {
   display: flex;
-  align-items: center;
-  gap: .68rem;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: .3rem;
   min-width: 0;
 }
 
 .mobile-counter-val {
   font-family: var(--mono);
   font-variant-numeric: tabular-nums;
-  font-size: .92rem;
+  font-size: clamp(.95rem, 4cqw, 1.1rem);
   font-weight: 700;
   color: var(--ink);
   white-space: nowrap;
@@ -629,25 +631,42 @@ body::before {
   text-overflow: ellipsis;
 }
 
-.card-mobile-cap {
+.mob-header-right {
   display: flex;
   align-items: center;
-  gap: .5rem;
+  gap: .65rem;
   flex-shrink: 0;
+  text-align: right;
+}
+
+.mobile-cap-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: .15rem;
+  min-width: 0;
 }
 
 .mobile-cap-target {
-  font-size: .75rem;
-  font-weight: 600;
-  color: var(--ink-2);
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--ink);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 140px;
+}
+
+.mobile-cap-date {
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--ink-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .accordion-chevron {
-  font-size: .8rem;
+  font-size: .85rem;
   color: var(--ink-3);
   transition: transform .2s ease;
 }
@@ -966,6 +985,7 @@ body::before {
 .card-months .card-cap           { background: var(--terracotta-bg); }
 .card-months .cap-number         { color: var(--terracotta); }
 .card-months .cap-date           { color: var(--terracotta); }
+.card-months .mobile-cap-target  { color: var(--terracotta); }
 
 .card-weeks .card-unit-label    { background: #FEF3C7; color: var(--amber); }
 .card-weeks .card-unit-label .dot { background: var(--amber); }
@@ -973,6 +993,7 @@ body::before {
 .card-weeks .card-cap            { background: var(--amber-bg); }
 .card-weeks .cap-number          { color: var(--amber); }
 .card-weeks .cap-date            { color: var(--amber); }
+.card-weeks .mobile-cap-target   { color: var(--amber); }
 
 .card-days .card-unit-label     { background: #DCFCE7; color: var(--forest); }
 .card-days .card-unit-label .dot  { background: var(--forest); }
@@ -980,6 +1001,7 @@ body::before {
 .card-days .card-cap             { background: var(--forest-bg); }
 .card-days .cap-number           { color: var(--forest); }
 .card-days .cap-date             { color: var(--forest); }
+.card-days .mobile-cap-target    { color: var(--forest); }
 
 .card-hours .card-unit-label    { background: #DBEAFE; color: var(--royal); }
 .card-hours .card-unit-label .dot { background: var(--royal); }
@@ -987,6 +1009,7 @@ body::before {
 .card-hours .card-cap            { background: var(--royal-bg); }
 .card-hours .cap-number          { color: var(--royal); }
 .card-hours .cap-date            { color: var(--royal); }
+.card-hours .mobile-cap-target   { color: var(--royal); }
 
 .card-minutes .card-unit-label  { background: #F3E8FF; color: var(--plum); }
 .card-minutes .card-unit-label .dot { background: var(--plum); }
@@ -994,6 +1017,7 @@ body::before {
 .card-minutes .card-cap          { background: var(--plum-bg); }
 .card-minutes .cap-number        { color: var(--plum); }
 .card-minutes .cap-date          { color: var(--plum); }
+.card-minutes .mobile-cap-target { color: var(--plum); }
 
 .card-seconds .card-unit-label  { background: #FFE4E6; color: var(--crimson); }
 .card-seconds .card-unit-label .dot { background: var(--crimson); }
@@ -1001,6 +1025,7 @@ body::before {
 .card-seconds .card-cap          { background: var(--crimson-bg); }
 .card-seconds .cap-number        { color: var(--crimson); }
 .card-seconds .cap-date          { color: var(--crimson); }
+.card-seconds .mobile-cap-target { color: var(--crimson); }
 
 /* ═══════════════════════════════════════════════════════════
    MODALS

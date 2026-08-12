@@ -277,6 +277,22 @@ function closeProfileModal() {
 
 // ─── Tri des cartes ──────────────────────────────────────────────────────────
 
+function sortAndOrderCards() {
+  if (!birthDate) return;
+  const now = new Date();
+  const elapsed = calculateTimeElapsed(birthDate, now);
+
+  UNITS.forEach(unit => {
+    const val = elapsed[unit.id];
+    const upcoming = getUpcomingMilestones(birthDate, val, unit.id, 1);
+    if (upcoming && upcoming.length > 0) {
+      closestMsRemaining[unit.id] = upcoming[0].msRemaining;
+    }
+  });
+
+  applyCardSorting();
+}
+
 function applyCardSorting() {
   if (sortMode === 'closest') {
     const sortedUnits = [...UNITS].sort((a, b) => {
@@ -302,9 +318,12 @@ function applyCardSorting() {
 function startDashboard() {
   if (timerInterval) clearInterval(timerInterval);
   if (!birthDate) return;
+
+  // Effectuer le tri 1 SEULE FOIS lors du lancement / changement de profil
+  sortAndOrderCards();
+
   timerInterval = startTimer(birthDate, (elapsed) => {
     UNITS.forEach(unit => updateCard(unit, elapsed[unit.id]));
-    applyCardSorting();
   });
 }
 
@@ -327,9 +346,15 @@ function updateCard(unit, currentValue) {
 
   if (upcoming.length > 0) {
     closestMsRemaining[unit.id] = upcoming[0].msRemaining;
+
     const mobCap = card.querySelector('.mobile-cap-target');
     if (mobCap) {
       mobCap.textContent = `🎯 ${formatMilestoneTarget(upcoming[0].next)} ${unit.labelPlural}`;
+    }
+
+    const mobDate = card.querySelector('.mobile-cap-date');
+    if (mobDate) {
+      mobDate.textContent = `le ${upcoming[0].targetDateFormatted}`;
     }
   }
 
@@ -744,7 +769,7 @@ function bindEvents() {
   document.getElementById('select-sort')?.addEventListener('change', (e) => {
     sortMode = e.target.value;
     localStorage.setItem('multiversaires_sort_mode', sortMode);
-    applyCardSorting();
+    sortAndOrderCards();
     if (sortMode === 'closest') {
       showToast('🎯 Tri par cap le plus proche activé');
     } else {
@@ -802,15 +827,18 @@ function buildDashboardCards() {
 
       <!-- En-tête mobile compact / Accordéon toggle -->
       <div class="card-header-toggle" role="button" aria-expanded="false">
-        <div class="card-mobile-summary">
+        <div class="mob-header-left">
           <span class="card-unit-label">
             <span class="dot"></span>
             ${unit.label}
           </span>
           <span class="mobile-counter-val">0 ${unit.labelPlural}</span>
         </div>
-        <div class="card-mobile-cap">
-          <span class="mobile-cap-target">🎯 –</span>
+        <div class="mob-header-right">
+          <div class="mobile-cap-info">
+            <span class="mobile-cap-target">🎯 –</span>
+            <span class="mobile-cap-date">le –</span>
+          </div>
           <span class="accordion-chevron">▾</span>
         </div>
       </div>
