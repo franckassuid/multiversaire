@@ -933,6 +933,88 @@ function buildDashboardCards() {
   `).join('');
 }
 
+// ─── Gestion Prompt & Bannière d'Installation PWA ────────────────────────────
+
+let deferredInstallPrompt = null;
+
+function setupPWAInstallPrompt() {
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+  if (isStandalone) return;
+
+  const isDismissed = localStorage.getItem('multiversaires_pwa_dismissed') === 'true';
+
+  // Chrome / Android / Desktop PWA prompt
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+    if (!isDismissed) {
+      showPWABanner('native');
+    }
+  });
+
+  // iOS Safari detection
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  if (isIOS && !isStandalone && !isDismissed) {
+    showPWABanner('ios');
+  }
+
+  // Clic bouton installer
+  document.getElementById('btn-pwa-install')?.addEventListener('click', () => {
+    if (deferredInstallPrompt) {
+      deferredInstallPrompt.prompt();
+      deferredInstallPrompt.userChoice.then((choice) => {
+        if (choice.outcome === 'accepted') {
+          console.log('[PWA] Utilisateur a accepté l\'installation');
+          hidePWABanner();
+        }
+        deferredInstallPrompt = null;
+      });
+    } else if (isIOS) {
+      document.getElementById('modal-ios-install')?.classList.add('active');
+    } else {
+      showToast('📲 Utilisez le menu de votre navigateur pour ajouter à l\'écran d\'accueil.');
+    }
+  });
+
+  // Masquer bannière
+  document.getElementById('btn-pwa-dismiss')?.addEventListener('click', () => {
+    localStorage.setItem('multiversaires_pwa_dismissed', 'true');
+    hidePWABanner();
+  });
+
+  // Fermer modale iOS
+  document.getElementById('btn-close-ios-modal')?.addEventListener('click', () => {
+    document.getElementById('modal-ios-install')?.classList.remove('active');
+  });
+  document.getElementById('btn-ack-ios')?.addEventListener('click', () => {
+    document.getElementById('modal-ios-install')?.classList.remove('active');
+    localStorage.setItem('multiversaires_pwa_dismissed', 'true');
+    hidePWABanner();
+  });
+}
+
+function showPWABanner(type) {
+  const banner = document.getElementById('pwa-install-banner');
+  const desc = document.getElementById('pwa-banner-desc');
+  const btn = document.getElementById('btn-pwa-install');
+  if (!banner) return;
+
+  if (type === 'ios') {
+    if (desc) desc.textContent = 'Ajoutez Multiversaires sur votre écran d\'accueil iOS pour y accéder comme une vraie appli hors-ligne.';
+    if (btn) btn.textContent = '📱 Comment installer ?';
+  } else {
+    if (desc) desc.textContent = 'Installez Multiversaires sur votre écran d\'accueil pour un accès instantané et 100% hors-ligne.';
+    if (btn) btn.textContent = '📲 Installer l\'application';
+  }
+
+  banner.style.display = 'flex';
+}
+
+function hidePWABanner() {
+  const banner = document.getElementById('pwa-install-banner');
+  if (banner) banner.style.display = 'none';
+}
+
 // ─── Init ─────────────────────────────────────────────────────────────────────
 
 function init() {
@@ -960,6 +1042,7 @@ function init() {
 
   buildDashboardCards();
   bindEvents();
+  setupPWAInstallPrompt();
 
   const active = getActiveProfile();
   if (active) {

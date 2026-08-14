@@ -85,6 +85,21 @@
        ══════════════════════════════════════════ -->
   <div id="view-dashboard" class="view" aria-label="Tableau de bord Multiversaires">
 
+    <!-- Bannière d'installation PWA -->
+    <div id="pwa-install-banner" class="pwa-banner" style="display: none;" role="region" aria-label="Installer l'application">
+      <div class="pwa-banner-content">
+        <div class="pwa-banner-icon">📲</div>
+        <div class="pwa-banner-text">
+          <strong>Installer Multiversaires</strong>
+          <span id="pwa-banner-desc">Installez l'application sur votre écran d'accueil pour un accès instantané et 100% hors-ligne.</span>
+        </div>
+      </div>
+      <div class="pwa-banner-actions">
+        <button id="btn-pwa-install" class="btn-pwa-install">📲 Installer</button>
+        <button id="btn-pwa-dismiss" class="btn-pwa-dismiss" aria-label="Masquer">✕</button>
+      </div>
+    </div>
+
     <header class="dashboard-header" role="banner">
       <div class="hdr-logo" id="hdr-logo" role="button" tabindex="0" title="Retour au début">
         <div class="hdr-logo-img">
@@ -225,6 +240,27 @@
         </div>
 
       </form>
+    </div>
+  </div>
+
+  <!-- Modale d'instructions iOS Safari -->
+  <div id="modal-ios-install" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-ios-title">
+    <div class="modal-box">
+      <div class="modal-hdr">
+        <h2 id="modal-ios-title">📱 Installer sur iPhone / iPad</h2>
+        <button id="btn-close-ios-modal" class="btn-close" aria-label="Fermer">✕</button>
+      </div>
+      <div class="ios-instructions">
+        <ol class="ios-steps">
+          <li>Dans Safari, appuyez sur le bouton <strong>Partager</strong> <span class="ios-icon">⎋</span> en bas de l'écran.</li>
+          <li>Faites défiler le menu et appuyez sur <strong>Sur l'écran d'accueil</strong> <span class="ios-icon">➕</span>.</li>
+          <li>Appuyez sur <strong>Ajouter</strong> en haut à droite.</li>
+        </ol>
+        <p class="ios-note">🎉 Multiversaires apparaîtra sur votre écran d'accueil comme une véritable application !</p>
+      </div>
+      <div class="modal-actions">
+        <button id="btn-ack-ios" class="btn-save" style="width:100%;">C'est compris !</button>
+      </div>
     </div>
   </div>
 
