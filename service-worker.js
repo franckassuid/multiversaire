@@ -1,9 +1,10 @@
 /**
- * Service Worker – Multiversaires PWA
- * Stratégie : Cache First pour les assets statiques
+ * Service Worker – Multiversaires PWA v5.0.0
+ * Stratégie : Network-First pour le code (mise à jour automatique sans vider le cache)
+ * + Fallback Cache pour le mode offline.
  */
 
-const CACHE_NAME = 'multiversaires-v2.0.0';
+const CACHE_NAME = 'multiversaires-v5.0.0';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -18,19 +19,19 @@ const ASSETS_TO_CACHE = [
   'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap'
 ];
 
-// Installation : mise en cache des assets
+// Installation : forcer le remplacement immédiat du SW
 self.addEventListener('install', (event) => {
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[SW] Mise en cache des assets statiques');
+      console.log('[SW v5.0.0] Mise en cache initiale');
       return cache.addAll(ASSETS_TO_CACHE.map(url => new Request(url, { cache: 'reload' })))
-        .catch(err => console.warn('[SW] Certains assets n\'ont pas pu être mis en cache:', err));
+        .catch(err => console.warn('[SW] Avertissement mise en cache:', err));
     })
   );
-  self.skipWaiting();
 });
 
-// Activation : nettoyage des anciens caches
+// Activation : prendre le contrôle immédiatement et supprimer tous les anciens caches
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -38,29 +39,24 @@ self.addEventListener('activate', (event) => {
         cacheNames
           .filter((name) => name !== CACHE_NAME)
           .map((name) => {
-            console.log('[SW] Suppression ancien cache:', name);
+            console.log('[SW] Nettoyage ancien cache:', name);
             return caches.delete(name);
           })
       );
-    })
+    }).then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-// Fetch : Cache First, puis réseau
+// Fetch : Stratégie Network-First pour toujours charger le dernier code en ligne
 self.addEventListener('fetch', (event) => {
-  // Ignorer les requêtes non-GET et les extensions Chrome
   if (event.request.method !== 'GET' || event.request.url.startsWith('chrome-extension://')) {
     return;
   }
 
+  // Network-First pour HTML, JS, CSS et JSON
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) {
-        return cachedResponse;
-      }
-      return fetch(event.request).then((networkResponse) => {
-        // Mettre en cache les nouvelles ressources
+    fetch(event.request)
+      .then((networkResponse) => {
         if (networkResponse && networkResponse.status === 200) {
           const responseClone = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => {
@@ -68,12 +64,17 @@ self.addEventListener('fetch', (event) => {
           });
         }
         return networkResponse;
-      }).catch(() => {
-        // Offline fallback pour les pages HTML
-        if (event.request.headers.get('accept').includes('text/html')) {
-          return caches.match('./index.html');
-        }
-      });
-    })
+      })
+      .catch(() => {
+        // Mode hors-ligne : fallback sur le cache local
+        return caches.match(event.request).then((cachedResponse) => {
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+          if (event.request.headers.get('accept')?.includes('text/html')) {
+            return caches.match('./index.html');
+          }
+        });
+      })
   );
 });

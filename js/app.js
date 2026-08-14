@@ -937,8 +937,19 @@ function buildDashboardCards() {
 
 function init() {
   if ('serviceWorker' in navigator) {
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        refreshing = true;
+        window.location.reload();
+      }
+    });
+
     navigator.serviceWorker.register('./service-worker.js')
-      .then(() => console.log('[SW] Enregistré'))
+      .then((reg) => {
+        console.log('[SW v5.0.0] Enregistré');
+        reg.update();
+      })
       .catch(err => console.warn('[SW] Échec:', err));
   }
 
