@@ -152,6 +152,19 @@ function calcAgeYears(birth) {
 function showOnboarding() {
   document.getElementById('view-onboarding').classList.add('active');
   document.getElementById('view-dashboard').classList.remove('active');
+
+  const returnWrap = document.getElementById('onboarding-return-container');
+  const returnName = document.getElementById('return-profile-name');
+  const activeP = getActiveProfile();
+
+  if (returnWrap) {
+    if (activeP && activeP.birthdate) {
+      returnWrap.style.display = 'block';
+      if (returnName) returnName.textContent = activeP.name;
+    } else {
+      returnWrap.style.display = 'none';
+    }
+  }
 }
 
 function showDashboard() {
@@ -476,6 +489,10 @@ function showToast(message, duration = 4000) {
 
 function bindEvents() {
   // Onboarding
+  document.getElementById('btn-return-dashboard')?.addEventListener('click', () => {
+    showDashboard();
+  });
+
   document.getElementById('form-onboarding')?.addEventListener('submit', (e) => {
     e.preventDefault();
     const dateVal = document.getElementById('input-date').value;
